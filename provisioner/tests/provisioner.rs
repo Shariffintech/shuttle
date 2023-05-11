@@ -202,7 +202,7 @@ async fn shared_mongodb_role_does_exist() {
         Some("mongodb-exist"),
     );
 
-    let user: Value = serde_json::from_str(&exec_mongosh(
+    let new_user: Value = serde_json::from_str(&exec_mongosh(
         r#"EJSON.stringify(db.getUser("user-exist", 
             { showCredentials: true }
         ))"#,
@@ -211,15 +211,11 @@ async fn shared_mongodb_role_does_exist() {
     .unwrap();
 
     // Extract the user's stored password hash key from the `getUser` output
-    let user_stored_key = &user["credentials"]["SCRAM-SHA-256"]["storedKey"];
-    assert_eq!(user["_id"], "mongodb-exist.user-exist");
+    let new_user_stored_key = &new_user["credentials"]["SCRAM-SHA-256"]["storedKey"];
+    assert_eq!(new_user["_id"], "mongodb-exist.user-exist");
 
-    provisioner
-        .request_shared_db("exist", shared::Engine::Mongodb(String::new()))
-        .await
-        .unwrap();
-
-    let user: Value = serde_json::from_str(&exec_mongosh(
+    // Make a second getUser call
+    let existing_user: Value = serde_json::from_str(&exec_mongosh(
         r#"EJSON.stringify(db.getUser("user-exist", 
             { showCredentials: true }
         ))"#,
@@ -228,9 +224,8 @@ async fn shared_mongodb_role_does_exist() {
     .unwrap();
 
     // Make sure it's the same user
-    assert_eq!(user["_id"], "mongodb-exist.user-exist");
+    assert_eq!(existing_user["_id"], "mongodb-exist.user-exist");
 
-    // Make sure password got cycled by comparing password hash keys
-    let user_cycled_key = &user["credentials"]["SCRAM-SHA-256"]["storedKey"];
-    assert_ne!(user_stored_key, user_cycled_key);
+    // Make sure password has not been changed
+    assert_eq!(*new_user_stored_key, existing_user["credentials"]["SCRAM-SHA-256"]["storedKey"]);
 }

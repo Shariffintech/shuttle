@@ -28,6 +28,9 @@ pub enum Error {
     #[error("unexpected sqlx error: {0}")]
     UnexpectedSqlx(#[from] sqlx::Error),
 
+    #[error("User already exists")]
+    UserAlreadyExists,
+
     #[error("unexpected mongodb error: {0}")]
     UnexpectedMongodb(#[from] mongodb::error::Error),
 
