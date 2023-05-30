@@ -1,0 +1,24 @@
+[package]
+name = "shuttle-proto"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+description = "Library for all the gRPC definitions used by shuttle"
+
+[dependencies]
+anyhow = { workspace = true }
+chrono = { workspace = true }
+home = { workspace = true }
+prost = { workspace = true }
+prost-types = { workspace = true }
+tokio = { workspace = true, features = ["process"] }
+tonic = { workspace = true }
+tower = { workspace = true }
+tracing = { workspace = true }
+
+[dependencies.shuttle-common]
+workspace = true
+features = ["claims", "error", "service", "wasm"]
+
+[dev-dependencies]
+tonic-build = { workspace = true }

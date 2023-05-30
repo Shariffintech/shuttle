@@ -210,6 +210,8 @@ impl MyProvisioner {
                 {"role": "readWrite", "db": database_name}
             ]
         };
+
+        // Insert the new user
         let result = db.run_command(new_user, None).await;
 
         match result {
@@ -217,21 +219,9 @@ impl MyProvisioner {
                 info!("new user created");
                 Ok((username, password))
             }
-            Err(e) => {
-                // If user already exists (error code: 51003) cycle their password
-                if e.to_string().contains("51003") {
-                    info!("cycling password of user");
-
-                    let change_password = doc! {
-                        "updateUser": &username,
-                        "pwd": &password,
-                    };
-                    db.run_command(change_password, None).await?;
-
-                    Ok((username, password))
-                } else {
-                    Err(Error::UnexpectedMongodb(e))
-                }
+            Err(_e) => {
+                // return an error if the user already exists
+                return Err(Error::UserAlreadyExists);
             }
         }
     }
